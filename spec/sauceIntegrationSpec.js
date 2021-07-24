@@ -154,6 +154,7 @@ describe('Sauce parameter handling', function() {
           // Kill the child processs if we're about to time out, to free up
           // the port.
           timedOut = true;
+          console.log(">>>>> About to time out. Killing the child process.");
           jasmineBrowserProcess.kill();
         }, 59 * 1000);
       },

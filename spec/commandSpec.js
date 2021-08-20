@@ -1,10 +1,12 @@
-const util = require('util'),
-  path = require('path'),
-  Writable = require('stream').Writable,
-  Command = require('../lib/command'),
-  { defaultConfig } = require('../lib/config'),
-  fs = require('fs'),
-  os = require('os');
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import { Writable } from 'stream';
+import Command from '../lib/command.js';
+import { defaultConfig } from '../lib/config.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 function StringWriter(options) {
   if (!(this instanceof StringWriter)) {
@@ -18,7 +20,8 @@ function StringWriter(options) {
     callback();
   };
 }
-util.inherits(StringWriter, Writable);
+
+StringWriter.prototype = new Writable();
 
 describe('Command', function() {
   beforeEach(function() {
@@ -28,31 +31,27 @@ describe('Command', function() {
 
   describe('With no subcommand specified', function() {
     it('runs the serve subcommand', async function() {
-      const fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-          'startServer',
-        ]),
-        command = new Command({
-          jasmineBrowser: fakeJasmineBrowser,
-          console: this.console,
-          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-        });
+      const startServer = jasmine.createSpy('startServer');
+      const command = new Command({
+        startServer,
+        console: this.console,
+        baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+      });
 
       await command.run([]);
 
-      expect(fakeJasmineBrowser.startServer).toHaveBeenCalled();
+      expect(startServer).toHaveBeenCalled();
     });
   });
 
   describe('serve', () => {
     it('starts a server', async function() {
-      const fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-          'startServer',
-        ]),
-        command = new Command({
-          jasmineBrowser: fakeJasmineBrowser,
-          console: this.console,
-          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-        });
+      const startServer = jasmine.createSpy('startServer');
+      const command = new Command({
+        startServer,
+        console: this.console,
+        baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+      });
 
       await command.run(['serve', '--config=sampleConfig.json']);
 
@@ -61,18 +60,16 @@ describe('Command', function() {
         'fixtures/sampleProject/sampleConfig.json'
       ));
 
-      expect(fakeJasmineBrowser.startServer).toHaveBeenCalledWith(options);
+      expect(startServer).toHaveBeenCalledWith(options);
     });
 
     it('finds a default config when serving', async function() {
-      const fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-          'startServer',
-        ]),
-        command = new Command({
-          jasmineBrowser: fakeJasmineBrowser,
-          console: this.console,
-          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-        });
+      const startServer = jasmine.createSpy('startServer');
+      const command = new Command({
+        startServer,
+        console: this.console,
+        baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+      });
 
       await command.run(['serve']);
 
@@ -81,18 +78,16 @@ describe('Command', function() {
         'fixtures/sampleProject/spec/support/jasmine-browser.json'
       ));
 
-      expect(fakeJasmineBrowser.startServer).toHaveBeenCalledWith(options);
+      expect(startServer).toHaveBeenCalledWith(options);
     });
 
     it('allows CLI args to override config file when serving', async function() {
-      const fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-          'startServer',
-        ]),
-        command = new Command({
-          jasmineBrowser: fakeJasmineBrowser,
-          console: this.console,
-          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-        });
+      const startServer = jasmine.createSpy('startServer');
+      const command = new Command({
+        startServer,
+        console: this.console,
+        baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+      });
 
       await command.run(['serve', '--config=sampleConfig.json', '--port=2345']);
 
@@ -103,21 +98,19 @@ describe('Command', function() {
 
       options.port = 2345;
 
-      expect(fakeJasmineBrowser.startServer).toHaveBeenCalledWith(options);
+      expect(startServer).toHaveBeenCalledWith(options);
     });
 
     it('propagates errors', async () => {
-      const error = new Error('nope'),
-        fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-          'startServer',
-        ]),
-        command = new Command({
-          jasmineBrowser: fakeJasmineBrowser,
-          console: this.console,
-          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-        });
+      const error = new Error('nope');
+      const startServer = jasmine.createSpy('startServer');
+      const command = new Command({
+        startServer,
+        console: this.console,
+        baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+      });
 
-      fakeJasmineBrowser.startServer.and.callFake(() => Promise.reject(error));
+      startServer.and.callFake(() => Promise.reject(error));
 
       await expectAsync(command.run(['serve'])).toBeRejectedWith(error);
     });
@@ -125,36 +118,32 @@ describe('Command', function() {
 
   describe('runSpecs', function() {
     it('propagates errors', async () => {
-      const error = new Error('nope'),
-        fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-          'runSpecs',
-        ]),
-        command = new Command({
-          jasmineBrowser: fakeJasmineBrowser,
-          console: this.console,
-          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-        });
+      const error = new Error('nope');
+      const runSpecs = jasmine.createSpy('runSpecs');
+      const command = new Command({
+        runSpecs,
+        console: this.console,
+        baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+      });
 
-      fakeJasmineBrowser.runSpecs.and.callFake(() => Promise.reject(error));
+      runSpecs.and.callFake(() => Promise.reject(error));
 
       await expectAsync(command.run(['runSpecs'])).toBeRejectedWith(error);
     });
 
     describe('when --fail-fast is specified', function() {
       it('sets the stopOnSpecFailure and stopSpecOnExpectationFailure env options to true', async function() {
-        const fakeJasmineBrowser = jasmine.createSpyObj('jasmineBrowser', [
-            'runSpecs',
-          ]),
-          command = new Command({
-            jasmineBrowser: fakeJasmineBrowser,
-            console: this.console,
-            baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
-          });
-        fakeJasmineBrowser.runSpecs.and.returnValue(Promise.resolve());
+        const runSpecs = jasmine.createSpy('startServer');
+        const command = new Command({
+          runSpecs,
+          console: this.console,
+          baseDir: path.resolve(__dirname, 'fixtures/sampleProject'),
+        });
+        runSpecs.and.returnValue(Promise.resolve());
 
         await command.run(['runSpecs', '--fail-fast']);
 
-        expect(fakeJasmineBrowser.runSpecs).toHaveBeenCalledWith(
+        expect(runSpecs).toHaveBeenCalledWith(
           jasmine.objectContaining({
             env: {
               stopOnSpecFailure: true,
@@ -170,7 +159,6 @@ describe('Command', function() {
     it('reports the version number', async function() {
       const jasmineBrowserVersion = require('../package.json').version;
       const command = new Command({
-        jasmineBrowser: {},
         jasmineCore: { version: () => '17.42' },
         console: this.console,
       });
@@ -198,7 +186,6 @@ describe('Command', function() {
     describe('When spec/support/jasmine-browser.json does not exist', function() {
       it('creates the file', async function() {
         const command = new Command({
-          jasmineBrowser: {},
           jasmineCore: {},
           console: this.console,
         });
@@ -216,7 +203,6 @@ describe('Command', function() {
     describe('When spec/support/jasmine-browser.json already exists', function() {
       it('does not create the file', async function() {
         const command = new Command({
-          jasmineBrowser: {},
           jasmineCore: {},
           console: this.console,
         });
@@ -240,7 +226,6 @@ describe('Command', function() {
   describe('help', function() {
     it('wraps the help text to 80 columns', async function() {
       const command = new Command({
-        jasmineBrowser: {},
         jasmineCore: {},
         console: this.console,
       });
@@ -257,7 +242,6 @@ describe('Command', function() {
 
     it('includes the --no- prefix for reversable boolean options', async function() {
       const command = new Command({
-        jasmineBrowser: {},
         jasmineCore: {},
         console: this.console,
       });
@@ -271,7 +255,6 @@ describe('Command', function() {
 
     it('omits the --no- prefix for the fail-fast option', async function() {
       const command = new Command({
-        jasmineBrowser: {},
         jasmineCore: {},
         console: this.console,
       });

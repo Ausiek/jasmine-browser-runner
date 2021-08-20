@@ -1,6 +1,6 @@
-const fs = require('fs');
-const os = require('os');
-const { exec } = require('child_process');
+import fs from 'fs';
+import os from 'os';
+import { exec } from 'child_process';
 
 describe('Sauce parameter handling', function() {
   // To reduce the amount of output that devs have to scroll past, pend a single

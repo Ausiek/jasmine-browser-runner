@@ -1,8 +1,5 @@
-function OrderReporter() {
+export default class OrderReporter {
+  specStarted(event) {
+    console.log('spec started:', event.fullName);
+  }
 }
-
-OrderReporter.prototype.specStarted = function(event) {
-  console.log('spec started:', event.fullName);
-};
-
-module.exports = OrderReporter;

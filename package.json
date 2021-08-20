@@ -2,7 +2,7 @@
   "name": "jasmine-browser-runner",
   "version": "0.7.0",
   "description": "Serve and run your Jasmine specs in a browser",
-  "bin": "bin/jasmine-browser-runner",
+  "bin": "bin/jasmine-browser-runner.js",
   "exports": "./index.js",
   "files": [
     "MIT.LICENSE",
@@ -14,6 +14,7 @@
     "bin/*.js",
     "lib/**/*.js"
   ],
+  "type": "module",
   "scripts": {
     "posttest": "eslint bin/* lib/*.js lib/**/*.js spec/**/*.js scripts/*.js index.js --ignore-path=.styleIgnore && prettier --check --ignore-path=.styleIgnore lib/*.js lib/**/*.js spec/**/*.js scripts/*.js index.js",
     "test": "jasmine",
@@ -70,7 +71,8 @@
       "expectAsync": "readonly"
     },
     "parserOptions": {
-      "ecmaVersion": 11
+      "ecmaVersion": 11,
+      "sourceType": "module"
     },
     "plugins": [
       "jasmine"

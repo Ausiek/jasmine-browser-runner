@@ -1,6 +1,7 @@
-const path = require('path'),
-  http = require('http'),
-  Server = require('../lib/server');
+import path from 'path';
+import http from 'http';
+import Server from '../lib/server.js';
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 function getFile(url) {
   return new Promise(function(resolve, reject) {

@@ -1,4 +1,4 @@
-const buildWebdriver = require('../lib/webdriver').buildWebdriver;
+import { buildWebdriver } from '../lib/webdriver.js';
 
 describe('webdriver', function() {
   describe('buildWebdriver', function() {

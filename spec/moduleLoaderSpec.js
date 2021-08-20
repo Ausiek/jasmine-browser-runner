@@ -1,5 +1,5 @@
-const ModuleLoader = require('../lib/moduleLoader');
-const url = require('url');
+import ModuleLoader from '../lib/moduleLoader.js';
+import url from 'url';
 
 describe('ModuleLoader', function() {
   it('loads json files using require', async function() {

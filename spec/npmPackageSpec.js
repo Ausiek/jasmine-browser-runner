@@ -1,7 +1,9 @@
-const path = require('path'),
-  temp = require('temp').track(),
-  fs = require('fs'),
-  shell = require('shelljs');
+import path from 'path';
+import temp from 'temp';
+import fs from 'fs';
+import shell from 'shelljs';
+
+temp.track();
 
 describe('npm package', function() {
   beforeAll(function() {
@@ -57,7 +59,7 @@ describe('npm package', function() {
 
     const files = fs.readdirSync(path.resolve(this.tmpDir, 'package/bin'));
     files.sort();
-    expect(files).toEqual(['jasmine-browser-runner']);
+    expect(files).toEqual(['jasmine-browser-runner.js']);
   });
 
   it('only has JS files in the lib dir', function() {

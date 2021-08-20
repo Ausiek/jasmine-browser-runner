@@ -1,4 +1,4 @@
-const { loadConfig, validateConfig } = require('../lib/config');
+import { loadConfig, validateConfig } from '../lib/config.js';
 
 describe('config', function() {
   describe('loadConfig', function() {

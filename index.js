@@ -1,8 +1,10 @@
-const DefaultReporter = require('./lib/default_reporter'),
-  webdriverModule = require('./lib/webdriver'),
-  Server = require('./lib/server'),
-  Runner = require('./lib/runner'),
-  ModuleLoader = require('./lib/moduleLoader');
+import DefaultReporter from './lib/default_reporter.js';
+import { buildWebdriver as defaultBuildWebdriver } from './lib/webdriver.js';
+import Server from './lib/server.js';
+import Runner from './lib/runner.js';
+import ModuleLoader from './lib/moduleLoader.js';
+
+export { Server, Runner, DefaultReporter };
 
 async function createReporters(options) {
   if (!options.reporters) {
@@ -35,82 +37,78 @@ async function createReporters(options) {
 /**
  * @module jasmine-browser-runner
  */
-module.exports = {
-  /**
-   * Starts a {@link Server} that will serve the specs and supporting files via HTTP.
-   * @param {ServerCtorOptions} options to use to construct the server
-   * @param {ServerStartOptions} serverOptions Options to use to start the server
-   * @return {Promise<undefined>} A promise that is resolved when the server is
-   * started.
-   */
-  startServer: function(options, serverOptions) {
-    const server = new Server(options);
-    return server.start(serverOptions || {});
-  },
-  /**
-   * Runs the specs.
-   * @param {RunSpecsOptions} options
-   * @return {Promise<JasmineDoneInfo>} A promise that resolves to the {@link https://jasmine.github.io/api/edge/global.html#JasmineDoneInfo|overall result} when the suite has finished running.
-   */
-  runSpecs: async function(options, deps) {
-    options = options || {};
-    if (options.browser && options.browser.name === 'internet explorer') {
-      options.jsonDomReporter = true;
-    } else {
-      options.batchReporter = true;
-    }
 
-    deps = deps || {};
-    const ServerClass = deps.Server || Server;
-    const RunnerClass = deps.Runner || Runner;
-    const buildWebdriver =
-      deps.buildWebdriver || webdriverModule.buildWebdriver;
-    const setExitCode = deps.setExitCode || (code => (process.exitCode = code));
-    const server = new ServerClass(options);
+/**
+ * Starts a {@link Server} that will serve the specs and supporting files via HTTP.
+ * @param {ServerCtorOptions} options to use to construct the server
+ * @param {ServerStartOptions} serverOptions Options to use to start the server
+ * @return {Promise<undefined>} A promise that is resolved when the server is
+ * started.
+ */
+export function startServer(options, serverOptions) {
+  const server = new Server(options);
+  return server.start(serverOptions || {});
+}
 
-    const reporters = await createReporters(options);
-    const useSauce = options.browser && options.browser.useSauce;
-    const portRequest = useSauce ? 5555 : 0;
-    await server.start({ port: portRequest });
+/**
+ * Runs the specs.
+ * @param {RunSpecsOptions} options
+ * @return {Promise<JasmineDoneInfo>} A promise that resolves to the {@link https://jasmine.github.io/api/edge/global.html#JasmineDoneInfo|overall result} when the suite has finished running.
+ */
+export async function runSpecs(options, deps) {
+  options = options || {};
+  if (options.browser && options.browser.name === 'internet explorer') {
+    options.jsonDomReporter = true;
+  } else {
+    options.batchReporter = true;
+  }
+
+  deps = deps || {};
+  const ServerClass = deps.Server || Server;
+  const RunnerClass = deps.Runner || Runner;
+  const buildWebdriver = deps.buildWebdriver || defaultBuildWebdriver;
+  const setExitCode = deps.setExitCode || (code => (process.exitCode = code));
+  const server = new ServerClass(options);
+
+  const reporters = await createReporters(options);
+  const useSauce = options.browser && options.browser.useSauce;
+  const portRequest = useSauce ? 5555 : 0;
+  await server.start({ port: portRequest });
+
+  try {
+    const webdriver = buildWebdriver(options.browser);
 
     try {
-      const webdriver = buildWebdriver(options.browser);
+      const host = `http://localhost:${server.port()}`;
+      const runner = new RunnerClass({ webdriver, reporters, host });
 
-      try {
-        const host = `http://localhost:${server.port()}`;
-        const runner = new RunnerClass({ webdriver, reporters, host });
+      console.log('Running tests in the browser...');
 
-        console.log('Running tests in the browser...');
+      const details = await runner.run(options);
 
-        const details = await runner.run(options);
-
-        // Use 0 only for complete success
-        // Avoid 1 because Node uses that for unhandled exceptions etc., and
-        // some users have CI systems that want to distinguish between spec
-        // failures and crashes.
-        if (details.overallStatus === 'passed') {
-          setExitCode(0);
-        } else if (details.overallStatus === 'incomplete') {
-          setExitCode(2);
-        } else {
-          setExitCode(3);
-        }
-
-        return details;
-      } finally {
-        if (useSauce) {
-          await webdriver.executeScript(
-            `sauce:job-result=${process.exitCode === 0}`
-          );
-        }
-
-        await webdriver.close();
+      // Use 0 only for complete success
+      // Avoid 1 because Node uses that for unhandled exceptions etc., and
+      // some users have CI systems that want to distinguish between spec
+      // failures and crashes.
+      if (details.overallStatus === 'passed') {
+        setExitCode(0);
+      } else if (details.overallStatus === 'incomplete') {
+        setExitCode(2);
+      } else {
+        setExitCode(3);
       }
+
+      return details;
     } finally {
-      await server.stop();
+      if (useSauce) {
+        await webdriver.executeScript(
+          `sauce:job-result=${process.exitCode === 0}`
+        );
+      }
+
+      await webdriver.close();
     }
-  },
-  Server,
-  Runner,
-  DefaultReporter,
-};
+  } finally {
+    await server.stop();
+  }
+}

@@ -1,5 +1,5 @@
-const { runSpecs, DefaultReporter } = require('../');
-const CompletionReporter = require('jasmine/lib/reporters/completion_reporter');
+import { runSpecs, DefaultReporter } from '../index.js';
+import CompletionReporter from 'jasmine/lib/reporters/completion_reporter.js';
 
 describe('index', function() {
   beforeEach(function() {

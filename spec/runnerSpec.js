@@ -1,5 +1,5 @@
-const querystring = require('querystring'),
-  Runner = require('../lib/runner.js');
+import querystring from 'querystring';
+import Runner from '../lib/runner.js';
 
 function fakeReporter() {
   return jasmine.createSpyObj('reporter', [

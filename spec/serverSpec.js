@@ -1,7 +1,8 @@
 import path from 'path';
 import http from 'http';
 import Server from '../lib/server.js';
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)));
 
 function getFile(url) {
   return new Promise(function(resolve, reject) {

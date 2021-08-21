@@ -5,8 +5,9 @@ import { Writable } from 'stream';
 import Command from '../lib/command.js';
 import { defaultConfig } from '../lib/config.js';
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)));
 const require = createRequire(import.meta.url);
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 function StringWriter(options) {
   if (!(this instanceof StringWriter)) {
